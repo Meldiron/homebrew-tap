@@ -1,0 +1,39 @@
+name: Update cask
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [meraline-release]
+  schedule:
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  meraline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Compare the cask with the latest release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag=$(gh release view --repo Meldiron/meraline --json tagName --jq .tagName)
+          echo "latest=${tag#v}" >> "$GITHUB_OUTPUT"
+          echo "current=$(sed -n 's/^  version "\(.*\)"$/\1/p' Casks/meraline.rb)" >> "$GITHUB_OUTPUT"
+
+      - name: Bump the cask
+        if: steps.release.outputs.latest != steps.release.outputs.current
+        env:
+          VERSION: ${{ steps.release.outputs.latest }}
+        run: |
+          curl -fsSL -o app.zip "https://github.com/Meldiron/meraline/releases/download/v${VERSION}/Meraline-${VERSION}.zip"
+          sha=$(sha256sum app.zip | cut -d' ' -f1)
+          sed -i "s/^  version \".*\"$/  version \"${VERSION}\"/; s/^  sha256 \".*\"$/  sha256 \"${sha}\"/" Casks/meraline.rb
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "meraline ${VERSION}"
+          git push
