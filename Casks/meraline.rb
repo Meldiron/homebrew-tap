@@ -1,6 +1,6 @@
 cask "meraline" do
-  version "1.13.0"
-  sha256 "58ff792b7b62bb542fd7d80f50ea81a5a398eb4e575dac361615457b332e472b"
+  version "1.14.0"
+  sha256 "43a7619392b176f765ce3f5d3d6f12dfa1786a102c7202b0d75cf4c5a2f3c865"
 
   url "https://github.com/Meldiron/meraline/releases/download/v#{version}/Meraline-#{version}.zip"
   name "Meraline"
